@@ -16,10 +16,10 @@ def setup_engine():
 setup_engine()
 
 # 3. BUILD THE INTERFACE
-st.title("📄 Waleed's Universal Document Converter")
+st.title("📄 Waleed's MS Word & PDF Converter")
 st.markdown("""
 Welcome! Paste your AI-generated text (including math equations surrounded by `$$`) into the box below. 
-Select your desired format, and instantly download your document.
+Select your output format, and instantly download a perfectly formatted document.
 """)
 
 with st.form("converter_form"):
@@ -28,19 +28,8 @@ with st.form("converter_form"):
         height=300
     )
     
-    # NEW: A dictionary of all the formats Pandoc can handle
-    FORMAT_OPTIONS = {
-        "MS Word (.docx)": "docx",
-        "PDF Document (.pdf)": "pdf",
-        "HTML Webpage (.html)": "html",
-        "Rich Text Format (.rtf)": "rtf",
-        "E-Book (.epub)": "epub",
-        "OpenDocument (.odt)": "odt",
-        "LaTeX Source (.tex)": "tex"
-    }
-    
-    # A clean dropdown menu instead of radio buttons
-    selected_format_name = st.selectbox("Select Output Format:", list(FORMAT_OPTIONS.keys()))
+    # NEW: Dropdown to choose between Word and PDF
+    format_choice = st.radio("Select Output Format:", ["MS Word (.docx)", "PDF (.pdf)"], horizontal=True)
     
     submitted = st.form_submit_button("⚙️ Convert Document", use_container_width=True)
 
@@ -49,30 +38,29 @@ if submitted:
     if not user_input.strip():
         st.warning("⚠️ Please paste some text before converting!")
     else:
-        output_ext = FORMAT_OPTIONS[selected_format_name]
-        output_file = f"Final_Document.{output_ext}"
-        
-        with st.spinner(f"Generating your {output_ext.upper()} file..."):
+        # PDFs take a bit longer to process, so we warn the user
+        with st.spinner(f"Generating your {format_choice} file... (PDFs may take 10-15 seconds)"):
             try:
-                # PDF requires the special LaTeX engine
-                if output_ext == "pdf":
-                    pypandoc.convert_text(user_input, 'pdf', format='md', outputfile=output_file, extra_args=['--pdf-engine=xelatex'])
+                if format_choice == "MS Word (.docx)":
+                    output_file = "Final_Document.docx"
+                    # The '--standalone' argument fixes the heading sizes in MS Word!
+                    pypandoc.convert_text(user_input, 'docx', format='md', outputfile=output_file, extra_args=['--standalone'])
+                    mime_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                 
-                # HTML, Word, and EPUB look best with the "standalone" argument
-                elif output_ext in ['docx', 'html', 'epub']:
-                    pypandoc.convert_text(user_input, output_ext, format='md', outputfile=output_file, extra_args=['--standalone'])
-                
-                # All other formats (RTF, ODT, TEX)
                 else:
-                    pypandoc.convert_text(user_input, output_ext, format='md', outputfile=output_file)
+                    output_file = "Final_Document.pdf"
+                    # We use xelatex engine specifically because it handles complex math beautifully
+                    pypandoc.convert_text(user_input, 'pdf', format='md', outputfile=output_file, extra_args=['--pdf-engine=xelatex'])
+                    mime_type = "application/pdf"
                 
-                st.success(f"✅ Conversion successful! Click below to save your {output_ext.upper()} file.")
+                st.success("✅ Conversion successful! Click below to save your file.")
                 
                 with open(output_file, "rb") as file:
                     st.download_button(
-                        label=f"⬇️ Download {selected_format_name}",
+                        label=f"⬇️ Download {format_choice}",
                         data=file,
                         file_name=output_file,
+                        mime=mime_type,
                         type="primary",
                         use_container_width=True
                     )
