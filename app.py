@@ -3,7 +3,7 @@ import pypandoc
 import os
 
 # 1. SETUP THE PAGE UI
-st.set_page_config(page_title="Universal Document Converter", page_icon="📄", layout="centered")
+st.set_page_config(page_title="Waleed's Document Converter", page_icon="📄", layout="centered")
 
 # 2. SMART ENGINE SETUP (Runs once in the background)
 @st.cache_resource
@@ -16,7 +16,7 @@ def setup_engine():
 setup_engine()
 
 # 3. BUILD THE INTERFACE
-st.title("📄 AI to MS Word Converter")
+st.title("📄 Waleed Abdullah MS Word Converter")
 st.markdown("""
 Welcome! Paste your AI-generated text (including math equations surrounded by `$$`) into the box below. 
 Click convert, and instantly download a perfectly formatted MS Word document.
